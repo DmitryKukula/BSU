@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class reading_file {
     public static String file_content(String input_file_name, String output_file_name) throws FileNotFoundException {
-        File file = new File(input_file_name);
+        File file = new File(ConstantVariable.Variable.PATH_IN + input_file_name);
         Scanner file_in = null;
         try {
             file_in = new Scanner(file);
@@ -15,7 +15,7 @@ public class reading_file {
             throw new RuntimeException(e);
         }
 
-        File file_out = new File(output_file_name);
+        File file_out = new File(ConstantVariable.Variable.PATH_OUT + output_file_name);
         try {
             boolean newFile = file_out.createNewFile();
         } catch (IOException e) {
@@ -27,14 +27,22 @@ public class reading_file {
 
             content = new StringBuilder();
             int temp = 0;
+            Scanner console_in = new Scanner(System.in);
+            System.out.print("Use regular expressions? (Yes/No) ");
+            String temp_arg = console_in.next();
             while (file_in.hasNextLine()) {
                 temp++;
                 String temp_content = file_in.nextLine();
                 content.append(temp_content);
                 content.append("\n");
-                List<counting.Lexeme> lexemes = counting.lexAnalyze(temp_content);
-                counting.LexemeBuffer lexemeBuffer = new counting.LexemeBuffer(lexemes);
-                pw.println(temp + ". " + temp_content + " = " + counting.expr(lexemeBuffer));
+                //if (temp_arg.equals("Yes")) {
+                    pw.println(temp + ".\n" + "Reg:\t " + temp_content + " = " + countingReg.calculate(temp_content));
+                //}
+                //else {
+                    List<counting.Lexeme> lexemes = counting.lexAnalyze(temp_content);
+                    counting.LexemeBuffer lexemeBuffer = new counting.LexemeBuffer(lexemes);
+                    pw.println("Stack:\t" + temp_content + " = " + counting.expr(lexemeBuffer) + "\n");
+                //}
             }
         }
         return content.toString();

@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class counting {
     public enum LexemeType {
@@ -108,7 +110,7 @@ public class counting {
         return lexemes;
     }
 
-    public static int expr(LexemeBuffer lexemes) {
+    public static double expr(LexemeBuffer lexemes) {
         Lexeme lexeme = lexemes.next();
         if (lexeme.type == LexemeType.EOF) {
             return 0;
@@ -118,8 +120,8 @@ public class counting {
         }
     }
 
-    public static int plusminus(LexemeBuffer lexemes) {
-        int value = multdiv(lexemes);
+    public static double plusminus(LexemeBuffer lexemes) {
+        double value = multdiv(lexemes);
         while (true) {
             Lexeme lexeme = lexemes.next();
             switch (lexeme.type) {
@@ -140,8 +142,8 @@ public class counting {
         }
     }
 
-    public static int multdiv(LexemeBuffer lexemes) {
-        int value = factor(lexemes);
+    public static double multdiv(LexemeBuffer lexemes) {
+        double value = factor(lexemes);
         while (true) {
             Lexeme lexeme = lexemes.next();
             switch (lexeme.type) {
@@ -164,13 +166,13 @@ public class counting {
         }
     }
 
-    public static int factor(LexemeBuffer lexemes) {
+    public static double factor(LexemeBuffer lexemes) {
         Lexeme lexeme = lexemes.next();
         switch (lexeme.type) {
             case NUMBER:
                 return Integer.parseInt(lexeme.value);
             case LEFT_BRACKET:
-                int value = plusminus(lexemes);
+                double value = plusminus(lexemes);
                 lexeme = lexemes.next();
                 if (lexeme.type != LexemeType.RIGHT_BRACKET) {
                     throw new RuntimeException("Unexpected token: " + lexeme.value

@@ -9,23 +9,23 @@ import java.util.zip.ZipOutputStream;
 
 public class Archive {
 
-    public static void unarchiving() throws IOException {
+    public static String unarchiving(String name_file) throws IOException {
         Scanner console_in = new Scanner(System.in);
-        System.out.print("Write the name of archive (with extension): ");
+        System.out.print("Write the name of archive (FULL): ");
         String name_archive = console_in.next();
-        unarchive(name_archive);
+        return unarchive(name_archive, name_file);
     }
-    public static void archiving(String name_file){
+
+    public static void archiving(String name_file) {
         Scanner console_in = new Scanner(System.in);
-        System.out.print("Write the output archive: ");
+        System.out.print("Write the output archive(FULL): ");
         String output_archive = console_in.next();
-        System.out.print("Write the archive extension: ");
-        String extension_archive = console_in.next();
-        Archive.archive(name_file, output_archive, extension_archive);
+        Archive.archive(name_file, output_archive);
     }
-    public static void archive(String name_file, String name_zip, String extension){
-        String sourceFile = "D:\\БГУ\\2 курс\\ПП\\Project1\\output\\" + name_file;
-        String zipFile = "D:\\БГУ\\2 курс\\ПП\\Project1\\output\\" + name_zip + "." + extension;
+
+    public static void archive(String name_file, String name_zip) {
+        String sourceFile = ConstantVariable.PATH_TEMP + name_file;
+        String zipFile = ConstantVariable.PATH_OUT + name_zip;
 
         try {
             FileOutputStream fos = new FileOutputStream(zipFile);
@@ -44,42 +44,38 @@ public class Archive {
             fis.close();
             zos.closeEntry();
             zos.close();
-            //System.out.println("File successfully archived!");
+            System.out.println("File successfully archived!\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        File temp_output = new File(ConstantVariable.Variable.PATH_OUT + name_file);
+        File temp_output = new File(ConstantVariable.PATH_OUT + name_file);
         temp_output.delete();
     }
-    public static void unarchive(String name) throws IOException {
-        String zipFilePath = ConstantVariable.Variable.PATH_IN + name;
-        //System.out.println("D:\\БГУ\\2 курс\\ПП\\Project1\\input\\" + name);
-        String destFolderPath = ConstantVariable.Variable.PATH_IN;
 
-        try (FileInputStream fis = new FileInputStream(zipFilePath);
-             ZipInputStream zis = new ZipInputStream(fis)) {
-                ZipEntry entry = zis.getNextEntry();
+    public static String unarchive(String name, String file) throws IOException {
+        String zipFilePath = ConstantVariable.PATH_IN + name;
+        StringBuilder fileContent = new StringBuilder();
 
-                while (entry != null) {
-                    String entryName = entry.getName();
-                    String filePath = destFolderPath + "/" + entryName;
+        try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFilePath))) {
+            ZipEntry zipEntry = zipInputStream.getNextEntry();
+            while (zipEntry != null) {
+                String fileName = zipEntry.getName();
 
-                    if (!entry.isDirectory()) {
-                        try (FileOutputStream fos = new FileOutputStream(filePath)) {
-                            byte[] buffer = new byte[1024];
-                            int bytesRead;
-                            while ((bytesRead = zis.read(buffer)) != -1) {
-                                fos.write(buffer, 0, bytesRead);
-                            }
-                        }
+                if (fileName.equals(file)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+
+                    while ((bytesRead = zipInputStream.read(buffer)) != -1) {
+                        fileContent.append(new String(buffer, 0, bytesRead));
                     }
-                    else {
-                        new File(filePath).mkdirs();
-                    }
-                    entry = zis.getNextEntry();
+                    break;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+
+                zipEntry = zipInputStream.getNextEntry();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileContent.toString();
     }
 }

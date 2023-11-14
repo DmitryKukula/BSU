@@ -1,42 +1,54 @@
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 public class EncryptFile {
-    public static void decrypt(String key,File input_file, File output_file) throws Exception{
-        FileInputStream inputStream = new FileInputStream(input_file);
-        byte[] inputBytes = new byte[(int) input_file.length()];
-        inputStream.read(inputBytes);
+    public static void encryptFile(String file) throws IOException {
+        String inputFile = ConstantVariable.PATH_TEMP + file;
+        String encryptedFile = ConstantVariable.PATH_OUT + file;
 
-        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "AES");
-        Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        FileInputStream inputStream = null;
+        FileOutputStream outputStream = null;
 
-        byte[] outputBytes = cipher.doFinal(inputBytes);
+        try {
+            inputStream = new FileInputStream(inputFile);
+            outputStream = new FileOutputStream(encryptedFile);
 
-        FileOutputStream outputStream = new FileOutputStream(output_file);
-        outputStream.write(outputBytes);
-
-        inputStream.close();
-        outputStream.close();
+            int byteData;
+            while ((byteData = inputStream.read()) != -1) {
+                byte encryptedByte = (byte) (byteData ^ ConstantVariable.KEY);
+                outputStream.write(encryptedByte);
+            }
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+            if (outputStream != null) {
+                outputStream.close();
+            }
+        }
     }
 
-    public static void encrypt(String key, File input_file, File output_file) throws Exception{
-        FileInputStream inputStream = new FileInputStream(input_file);
-        byte[] inputBytes = new byte[(int) input_file.length()];
-        inputStream.read(inputBytes);
+    public static String decryptFile(String encryptedString) throws IOException {
+        String decryptedFile = ConstantVariable.PATH_TEMP + "temp.txt";
 
-        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "AES");
-        Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        FileInputStream inputStream = null;
+        FileOutputStream outputStream = null;
 
-        byte[] outputBytes = cipher.doFinal(inputBytes);
+        StringBuilder decryptedString;
+        decryptedString = new StringBuilder();
 
-        FileOutputStream outputStream = new FileOutputStream(output_file);
-        outputStream.write(outputBytes);
+        try {
+            outputStream = new FileOutputStream(decryptedFile);
 
-        inputStream.close();
-        outputStream.close();
+            for (int i = 0; i < encryptedString.length(); i++) {
+                char decryptedChar = (char) (encryptedString.charAt(i) ^ ConstantVariable.KEY);
+                decryptedString.append(decryptedChar);
+            }
+        } finally {
+            if (outputStream != null) {
+                outputStream.close();
+            }
+        }
+        return decryptedString.toString();
     }
 }

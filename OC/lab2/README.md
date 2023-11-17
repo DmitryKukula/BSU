@@ -21,8 +21,7 @@ min_max и average.**
 
    
 ---
-
-#### Примечания.
+### *Примечания.*
 1. Для ожидания завершения работы потоков min_max и average использовать функцию:
 ```cpp
 DWORD WaitForSingleObject(

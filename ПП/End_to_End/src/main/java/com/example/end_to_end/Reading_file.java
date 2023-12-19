@@ -21,26 +21,4 @@ public class Reading_file {
         Path path = Paths.get(filePath);
         return Files.readAllBytes(path);
     }
-
-    public static byte[] readFileXMLToBytes(String fileName) throws IOException, SAXException, ParserConfigurationException {
-        File xmlFile = new File(ConstantVariable.PATH_IN + fileName);
-
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(xmlFile);
-
-        NodeList expressionList = doc.getElementsByTagName("expression");
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        for (int i = 0; i < expressionList.getLength(); i++) {
-            Element expressionElement = (Element) expressionList.item(i);
-            String expression = expressionElement.getTextContent().replaceAll("\\s", ""); // Удаление пробелов
-            outputStream.write(expression.getBytes());
-            if (i < expressionList.getLength() - 1) {
-                outputStream.write("\n".getBytes());
-            }
-        }
-
-        return outputStream.toByteArray();
-    }
 }

@@ -1,12 +1,16 @@
 package com.example.end_to_end;
 
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
@@ -74,62 +78,55 @@ public class Controller {
 
     @FXML
     void Select(ActionEvent event) throws Exception {
-        byte[] bytes;
-        String nameZip;
-        String fileName = InFileName.getText();
-        if (CheckArch.isSelected()){
-            nameZip = InZipArchive.getText();
-            bytes = Archive.readArchive(fileName, nameZip, ConstantVariable.PATH_IN);
-        }
-        else {
-            bytes = Reading_file.readFileToBytes(fileName, ConstantVariable.PATH_IN);
+        boolean chArchIn = CheckArch.isSelected();
+        boolean chEncrIn = CheckEncr.isSelected();
+        String fileNameIn = InFileName.getText();
+        int dotIndex = fileNameIn.indexOf('.');
+        String substringAfterDot = fileNameIn.substring(dotIndex + 1);
+        if (dotIndex <= 0 || (!substringAfterDot.equals("txt") && !substringAfterDot.equals("json") && !substringAfterDot.equals("xml"))){
+            showErrorAlert("Ошибка", "Неверный ввод", "Введите корректное имя для входного файла.");
+            return;
         }
 
-        if (CheckEncr.isSelected()) {
-            try {
-                bytes = Encrypt_file_AES.decrypt(bytes);
-            } catch (Exception e) {
-                e.printStackTrace();
+        String zipNameIn = "";
+
+        if (chArchIn) {
+            zipNameIn = InZipArchive.getText();
+            zipNameIn = zipNameIn.trim();
+            dotIndex = zipNameIn.indexOf('.');
+            substringAfterDot = zipNameIn.substring(dotIndex + 1);
+            if (zipNameIn == null || zipNameIn.trim().isEmpty() || dotIndex <= 0 || !substringAfterDot.equals("zip")) {
+                showErrorAlert("Ошибка", "Неверный ввод", "Введите корректное имя для входного архива.");
+                return;
             }
         }
-        bytes = FilterBytes.filterBytes(bytes);
-        String content = new String(bytes);
-        byte[] resultBytes = MathExpressionEvaluator.calculate(content);
-        String nameOutputFile = OutFileName.getText();
-        int dotIndex = nameOutputFile.indexOf('.');
-        String substringAfterDot = nameOutputFile.substring(dotIndex + 1);
-        switch (substringAfterDot){
-            case "txt":
-                break;
-            case "json":
-                resultBytes = Output.convertBytesForJSON(resultBytes);
-                break;
-            case "xml":
-                resultBytes = Output.convertBytesForXML(resultBytes);
-                break;
-        }
 
-        if (CheckEncr1.isSelected()) {
-            resultBytes = Encrypt_file_AES.encrypt(resultBytes);
+        boolean chArchOut = CheckArch1.isSelected();
+        boolean chAEncrOut = CheckEncr1.isSelected();
+        String fileNameOut = OutFileName.getText();
+        dotIndex = fileNameOut.indexOf('.');
+        substringAfterDot = fileNameOut.substring(dotIndex + 1);
+        if (dotIndex <= 0 || (!substringAfterDot.equals("txt") && !substringAfterDot.equals("json") && !substringAfterDot.equals("xml"))){
+            showErrorAlert("Ошибка", "Неверный ввод", "Введите корректное имя для выходного файла.");
+            return;
         }
+        String zipNameOut = "";
 
-        if (CheckArch1.isSelected()) {
-            String nameOutputArchive = OutZipArchive.getText();
-            Archive.recordArchive(resultBytes, ConstantVariable.PATH_OUT + nameOutputArchive, nameOutputFile);
-        } else {
-            Output.writeBytesToFile(nameOutputFile, ConstantVariable.PATH_OUT, resultBytes);
+        if (chArchOut) {
+            zipNameOut = OutZipArchive.getText();
         }
 
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("ResultAPP.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            Stage newWindow = new Stage();
-            newWindow.initModality(Modality.APPLICATION_MODAL);
-            newWindow.setScene(scene);
-            newWindow.setTitle("Result");
-            newWindow.showAndWait();
-
+            new ProgramBuilder()
+                    .setCheckArch(chArchIn)
+                    .setCheckEncr(chEncrIn)
+                    .setCheckArch1(chArchOut)
+                    .setCheckEncr1(chAEncrOut)
+                    .setInFileName(fileNameIn)
+                    .setInZipArchive(zipNameIn)
+                    .setOutFileName(fileNameOut)
+                    .setOutZipArchive(zipNameOut)
+                    .runProgram();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -145,4 +142,11 @@ public class Controller {
     void initialize() {
     }
 
+    private void showErrorAlert(String title, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
 }

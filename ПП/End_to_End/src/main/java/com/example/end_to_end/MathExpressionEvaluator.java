@@ -7,30 +7,33 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MathExpressionEvaluator {
-    public static byte[] calculate(String content) throws ScriptException {
+    private static boolean containsArithmeticOperatorsRegex(String input) {
+        String regex = "[-+*/]";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(input);
+        return matcher.find();
+    }
+    public static byte[] calculate(String content, boolean libSoution) throws ScriptException {
         String[] lines = content.split("\\r?\\n");
         StringBuilder result = new StringBuilder();
-        /*Scanner console_in = new Scanner(System.in);
-        System.out.println("Use the library to count expressions? (Yes/No): ");
-        String answer = console_in.next();
-        if (answer.equals("Yes")) {
+        if (libSoution) {
             for (String expression : lines) {
-                if (expression.length() > 2) {
-                    System.out.println(expression);
+                if (containsArithmeticOperatorsRegex(expression)) {
                     result.append(lib_evaluateMathExpression(expression)).append("\n");
                 }
             }
         }
-        else {*/
+        else {
             for (String expression : lines) {
-                if (expression.length() > 2) {
-                    System.out.println(expression);
+                if (containsArithmeticOperatorsRegex(expression)) {
                     result.append(stack_evaluateMathExpression(expression)).append("\n");
                 }
             }
-        //}
+        }
         return result.toString().getBytes();
     }
     public static String lib_evaluateMathExpression(String expression) throws ScriptException {
@@ -169,71 +172,6 @@ public class MathExpressionEvaluator {
             return pos;
         }
     }
-
-    public static List<Lexeme> lexAnalyze(String expText) {
-        ArrayList<Lexeme> lexemes = new ArrayList<>();
-        int pos = 0;
-        while (pos< expText.length()) {
-            char c = expText.charAt(pos);
-            switch (c) {
-                case '(':
-                    lexemes.add(new Lexeme(LexemeType.LEFT_BRACKET, c));
-                    pos++;
-                    continue;
-                case ')':
-                    lexemes.add(new Lexeme(LexemeType.RIGHT_BRACKET, c));
-                    pos++;
-                    continue;
-                case '+':
-                    lexemes.add(new Lexeme(LexemeType.OP_PLUS, c));
-                    pos++;
-                    continue;
-                case '-':
-                    lexemes.add(new Lexeme(LexemeType.OP_MINUS, c));
-                    pos++;
-                    continue;
-                case '*':
-                    lexemes.add(new Lexeme(LexemeType.OP_MUL, c));
-                    pos++;
-                    continue;
-                case '/':
-                    lexemes.add(new Lexeme(LexemeType.OP_DIV, c));
-                    pos++;
-                    continue;
-                default:
-                    if (c <= '9' && c >= '0') {
-                        StringBuilder sb = new StringBuilder();
-                        do {
-                            sb.append(c);
-                            pos++;
-                            if (pos >= expText.length()) {
-                                break;
-                            }
-                            c = expText.charAt(pos);
-                        } while (c <= '9' && c >= '0');
-                        lexemes.add(new Lexeme(LexemeType.NUMBER, sb.toString()));
-                    } else {
-                        if (c != ' ') {
-                            throw new RuntimeException("Unexpected character: " + c);
-                        }
-                        pos++;
-                    }
-            }
-        }
-        lexemes.add(new Lexeme(LexemeType.EOF, ""));
-        return lexemes;
-    }
-
-    public static double expr(LexemeBuffer lexemes) {
-        Lexeme lexeme = lexemes.next();
-        if (lexeme.type == LexemeType.EOF) {
-            return 0;
-        } else {
-            lexemes.back();
-            return plusminus(lexemes);
-        }
-    }
-
     public static double plusminus(LexemeBuffer lexemes) {
         double value = multdiv(lexemes);
         while (true) {
